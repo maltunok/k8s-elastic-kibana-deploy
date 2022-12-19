@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: elastic-web-ingress
+  namespace: elastic
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    kubernetes.io/tls-acme: "true"
+spec:
+  # ingressClassName: nginx
+  rules:
+    - host: es.alisangroup.com
+      http: &es_rules
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: elastic-es-http
+                port:
+                  number: 9200
+    - host: es.alisangroup.com
+      http: *es_rules
+    - host: kb.alisangroup.com
+      http: &ek_rules
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: elastic-kb-http
+                port:
+                  number: 5601
+    - host: kb.alisangroup.com
+      http: *ek_rules

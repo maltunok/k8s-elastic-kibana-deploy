@@ -1,0 +1,79 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elastic
+  namespace: elastic
+spec:
+  version: 7.7.0
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  nodeSets:
+    - name: default
+      count: 1
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              # resources:
+              #   requests:
+              #     memory: 4000Mi
+              #   limits:
+              #     memory: 4000Mi
+          # tolerations:
+          #   - key: monitor
+          #     operator: Equal
+          #     value: pool
+          #     effect: NoExecute
+          #     tolerationSeconds: 6000
+          nodeSelector:
+            agentpool: monitoring
+      config:
+        #node.master: true
+        #node.data: true
+        #node.ingest: true
+        node.store.allow_mmap: false
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 40Gi
+
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: elastic
+  namespace: elastic
+spec:
+  version: 7.7.0
+  count: 1
+  elasticsearchRef:
+    name: elastic
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          # resources:
+          #   requests:
+          #     memory: 1Gi
+          #     cpu: 0.5
+          #   limits:
+          #     memory: 1Gi
+      # tolerations:
+      #   - key: "monitor"
+      #     operator: "Equal"
+      #     value: "pool"
+      #     effect: "NoExecute"
+      #     tolerationSeconds: 6000
+      nodeSelector:
+        agentpool: monitoring
